@@ -1,0 +1,41 @@
+{{ define "index" }}
+{{ template "header" }}
+
+    <div class="main">
+        <div class="title">
+            <h2>Wellcome to IMAP client app!</h2>
+        </div>
+
+        <form class="config-form" action="/auth" >
+            <div class="choose-server">
+                <select name="server" id="server">
+                    <option>imap.yandex.ru</option>
+                    <option>imap.rambler.ru</option>
+                </select>
+            </div>
+                        
+            <div class="login">
+                <label for="login">Login:</label>
+                <input type="text" id="login" placeholder="login" name="login" autocomplete="off" />
+                        
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="*******" name="password" autocomplete="off" />                    
+            </div>
+
+            <div class="login-button">
+                <input type="submit" value="Login" id="login-button" />
+            </div>
+        </form>
+
+        <hr/>
+            
+        <div class="output">
+            <div class="content">
+                <h3>Содержание:</h3>
+                <p>Индоссамент как судебное решение</p>
+            </div>
+        </div>
+    </div>
+
+{{ template "footer" }}
+{{ end }}
