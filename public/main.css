@@ -39,6 +39,11 @@ button::-moz-focus-inner {
 }
 
 .config-form {
+    flex: 1;
+    font-size: 18px;
+}
+
+.config-data {
     display: flex;
     flex-direction: inline;
     justify-content: space-between;
@@ -60,16 +65,16 @@ button::-moz-focus-inner {
     font-size: 18px;
 }
 
-.login label {
+.login-block label {
     margin-top: 7px;
 }
 
-.login input {
+.login-block input {
     margin-bottom: 7px;
     padding: 2px;
 }
 
-.login {
+.login-block {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -77,7 +82,7 @@ button::-moz-focus-inner {
     flex: 1;
 }
 
-.login-button {
+.login-button-block {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -111,7 +116,7 @@ hr {
 }
 
 /* Buttons styles start */
-input[type=submit] {
+input.submit-button {
     display: inline-block;
     border: none;
     padding: 1rem 2rem;
@@ -127,11 +132,21 @@ input[type=submit] {
     -webkit-appearance: none;
     -moz-appearance: none;
 }
-input[type=submit]:hover,
-input[type=submit]:focus {
+input.submit-button:hover,
+input.submit-button:focus {
     background: #0053ba;
 }
-input[type=submit]:active {
+input.submit-button:active {
     transform: scale(0.95);
 }
 /* Button styles end */
+
+input.error  {
+  background-color: #fce4e4;
+  border-color: #cc0033;
+  border-style: solid;
+  outline: none;
+}
+label.error  {
+    color: #cc0033;
+}

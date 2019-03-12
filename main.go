@@ -6,33 +6,43 @@ import (
 	"html/template"
 	"net/http"
 	"os"
+
+	db "./db"
 )
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
+// Index(roote) route handler
+// read auth data from auth.json and show login/logout info
+// also view result of requset to imap server
+func indexHandler(w http.ResponseWriter, req *http.Request) {
 	t, err := template.ParseFiles("./templates/index.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 	}
 
-	// TODO
-	// Прочитать данные и отправить их в форму для рендеринга, если там пусто то просил ввести их,
-	// если нет, то рисуем данные
-	// данные передаём вместо nil
-	t.ExecuteTemplate(w, "index", nil)
+	mess := db.GetAuthData()
+	fmt.Println(mess)
+
+	t.ExecuteTemplate(w, "index", mess)
 }
 
+// Auth route hanlder
+// write data from Post request to auth.json
+// and send redirect to index(root)
 func authHandler(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		panic(err)
 	}
-	form := req.Form
 
-	fo, err := os.Create("auth")
+	dataForm := map[string]string{
+		"login":    req.FormValue("login"),
+		"password": req.FormValue("password"),
+		"server":   req.FormValue("server")}
+
+	fo, err := os.Create("auth.json")
 	if err != nil {
 		panic(err)
 	}
-	// close fo on exit and check for its returned error
 	defer func() {
 		if err := fo.Close(); err != nil {
 			panic(err)
@@ -40,7 +50,9 @@ func authHandler(w http.ResponseWriter, req *http.Request) {
 	}()
 
 	enc := json.NewEncoder(fo)
-	enc.Encode(form)
+	enc.Encode(dataForm)
+
+	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 func main() {

@@ -1,0 +1,65 @@
+{{ define "index" }}
+{{ template "header" }}
+
+    <div class="main">
+        <div class="title">
+            <h2>Wellcome to IMAP client app!</h2>
+        </div>
+
+        {{ if and .Login .Password .Server }}
+
+            <div class="config-data">
+                <div class="choose-server">
+                    <h3>Server:</h3>
+                    <p>{{ .Server }}</p>
+                </div>
+
+                <div class="login-block" id="login-block">
+                    <h3>Login:</h3>
+                    <p>{{ .Login }}</p>
+                </div>
+
+                <div class="login-button-block">
+                    <input type="submit" class="submit-button" value="Logout" id="logout-button" />
+                </div>
+            </div>
+
+            <hr/>
+                    
+            <div class="output">
+                <div class="content">
+                    <h3>Содержание:</h3>
+                    <p>Индоссамент как судебное решение</p>
+                </div>
+            </div>
+
+        {{ else }}
+
+            <form class="config-form" action="/auth">
+                <div class="choose-server">
+                    <label for="server">Server:</label>
+                    <select name="server" id="server">
+                        <option>imap.yandex.ru</option>
+                        <option>imap.rambler.ru</option>
+                    </select>
+                </div>
+
+                <div class="login-block" id="login-block">
+                    <label for="login" id="label-login">Login:</label>
+                    <input type="text" id="login" placeholder="login" name="login" autocomplete="off" />
+                            
+                    <label for="password" id="label-password">Password:</label>
+                    <input type="password" id="password" placeholder="*******" name="password" autocomplete="off" />                    
+                </div>
+
+                <div class="login-button-block">
+                    <input type="submit" class="submit-button"  value="Login" id="login-button" />
+                </div>
+            </form>
+
+        {{ end }}
+
+    </div>
+
+{{ template "footer" }}
+{{ end }}
