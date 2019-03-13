@@ -2,7 +2,6 @@ package db
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 )
 
@@ -27,7 +26,8 @@ func GetAuthData() AuthData {
 	fi, err := os.Open(fileName)
 	if err != nil {
 		createFileWithVoidAuth()
-		fmt.Println("lol")
+		ad := AuthData{}
+		return ad
 	}
 	defer func() {
 		if err := fi.Close(); err != nil {
@@ -41,10 +41,42 @@ func GetAuthData() AuthData {
 	if err = jsonParser.Decode(&data); err != nil {
 		panic(err.Error())
 	}
-
 	return data
 }
 
 func createFileWithVoidAuth() {
+	voidAuth := map[string]string{
+		"login":    "",
+		"password": "",
+		"server":   ""}
 
+	fo, err := os.Create("auth.json")
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := fo.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	enc := json.NewEncoder(fo)
+	enc.Encode(voidAuth)
+}
+
+// SaveAuthData - save authentication data to auth.json file
+// data : input value
+func SaveAuthData(data AuthData) {
+	fo, err := os.Create("auth.json")
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := fo.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	enc := json.NewEncoder(fo)
+	enc.Encode(data)
 }

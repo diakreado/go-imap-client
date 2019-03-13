@@ -1,13 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
-	"os"
 
 	db "./db"
+)
+
+const (
+	port = ":3000"
 )
 
 // Index(roote) route handler
@@ -18,11 +20,9 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 	}
+	data := db.GetAuthData()
 
-	mess := db.GetAuthData()
-	fmt.Println(mess)
-
-	t.ExecuteTemplate(w, "index", mess)
+	t.ExecuteTemplate(w, "index", data)
 }
 
 // Auth route hanlder
@@ -33,33 +33,21 @@ func authHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+	data := db.AuthData{
+		Login:    req.FormValue("login"),
+		Password: req.FormValue("password"),
+		Server:   req.FormValue("server")}
 
-	dataForm := map[string]string{
-		"login":    req.FormValue("login"),
-		"password": req.FormValue("password"),
-		"server":   req.FormValue("server")}
-
-	fo, err := os.Create("auth.json")
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		if err := fo.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	enc := json.NewEncoder(fo)
-	enc.Encode(dataForm)
+	db.SaveAuthData(data)
 
 	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 func main() {
-	fmt.Println("Listening on port :3000")
+	fmt.Println("Listening on port " + port)
 
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public/"))))
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/auth", authHandler)
-	http.ListenAndServe(":3000", nil)
+	http.ListenAndServe(port, nil)
 }
