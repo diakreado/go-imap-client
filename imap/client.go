@@ -5,9 +5,10 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"time"
+
+	"../db"
 )
 
 const (
@@ -16,14 +17,13 @@ const (
 )
 
 func main() {
-	log.SetFlags(log.Lshortfile)
 	conf := &tls.Config{}
 
 	// Set up tls connection
 	conn, err := tls.Dial("tcp", url+":"+port, conf)
 	if err != nil {
-		log.Println("Connection failed")
-		log.Println(err)
+		fmt.Println("Connection failed")
+		fmt.Println(err)
 		return
 	}
 	defer conn.Close()
@@ -75,4 +75,8 @@ func commandHandler(conn io.Writer, command string) {
 		// fmt.Fprintf(conn, "lol")
 		fmt.Println("lol")
 	}
+}
+
+func GetPostBoxState() {
+	db.GetAuthData()
 }

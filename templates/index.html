@@ -20,17 +20,14 @@
                 </div>
 
                 <div class="login-button-block">
-                    <input type="submit" class="submit-button" value="Logout" id="logout-button" />
+                    <input type="submit" class="blue-button" value="Logout" id="logout-button" />
                 </div>
             </div>
 
             <hr/>
                     
             <div class="output">
-                <div class="content">
-                    <h3>Содержание:</h3>
-                    <p>Индоссамент как судебное решение</p>
-                </div>
+                {{ template "content" }}
             </div>
 
         {{ else }}
@@ -53,7 +50,7 @@
                 </div>
 
                 <div class="login-button-block">
-                    <input type="submit" class="submit-button"  value="Login" id="login-button" />
+                    <input type="submit" class="blue-button"  value="Login" id="login-button" />
                 </div>
             </form>
 

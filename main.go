@@ -16,11 +16,19 @@ const (
 // read auth data from auth.json and show login/logout info
 // also view result of requset to imap server
 func indexHandler(w http.ResponseWriter, req *http.Request) {
-	t, err := template.ParseFiles("./templates/index.html", "./templates/header.html", "./templates/footer.html")
+	t, err := template.ParseFiles(
+		"./templates/index.html",
+		"./templates/header.html",
+		"./templates/footer.html",
+		"./templates/content.html")
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 	}
 	data := db.GetAuthData()
+
+	if data.Login != "" && data.Password != "" && data.Server != "" {
+		fmt.Println("Succsessful authentication!")
+	}
 
 	t.ExecuteTemplate(w, "index", data)
 }
