@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	db "./db"
+	imap "./imap"
+	. "github.com/logrusorgru/aurora"
 )
 
 const (
@@ -24,10 +26,13 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 	}
+	fmt.Println(req.Method, req.URL)
+
 	data := db.GetAuthData()
 
 	if data.Login != "" && data.Password != "" && data.Server != "" {
-		fmt.Println("Succsessful authentication!")
+		imap.GetPostBoxState()
+		// fmt.Println("Succsessful authentication!")
 	}
 
 	t.ExecuteTemplate(w, "index", data)
@@ -52,10 +57,10 @@ func authHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	fmt.Println("Listening on port " + port)
-
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public/"))))
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/auth", authHandler)
-	http.ListenAndServe(port, nil)
+	fmt.Println("Listening on port", Brown(port))
+	err := http.ListenAndServe(port, nil)
+	fmt.Println("Error creating http server:", Red(err))
 }

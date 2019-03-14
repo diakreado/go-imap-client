@@ -150,7 +150,7 @@ label.error  {
     flex-direction: inline;
     justify-content: space-between;
     margin: 35px;
-    font-size: calc(12px + 1vh);
+    font-size: 18px;
 }
 
 .content h3 {
