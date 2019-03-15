@@ -30,10 +30,10 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 
 	data := db.GetAuthData()
 
-	if data.Login != "" && data.Password != "" && data.Server != "" {
-		fmt.Println(Brown(imap.TryToLogin()))
-		// fmt.Println("Succsessful authentication!")
-	}
+	// if data.Login != "" && data.Password != "" && data.Server != "" {
+	// fmt.Println(Brown(imap.TryToLogin()))
+	// fmt.Println("Succsessful authentication!")
+	// }
 
 	t.ExecuteTemplate(w, "index", data)
 }
@@ -41,7 +41,8 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 // Auth route hanlder
 // write data from Post request to auth.json
 // and send redirect to index(root)
-func authHandler(w http.ResponseWriter, req *http.Request) {
+func authHandler(res http.ResponseWriter, req *http.Request) {
+	fmt.Println(req.Method, req.URL)
 	err := req.ParseForm()
 	if err != nil {
 		panic(err)
@@ -53,7 +54,11 @@ func authHandler(w http.ResponseWriter, req *http.Request) {
 
 	db.SaveAuthData(data)
 
-	http.Redirect(w, req, "/", http.StatusSeeOther)
+	if req.Method == "POST" && data.Login != "" && data.Password != "" && data.Server != "" {
+		fmt.Fprintf(res, "%t", imap.TryToLogin())
+	} else {
+		http.Redirect(res, req, "/", http.StatusSeeOther)
+	}
 }
 
 func main() {

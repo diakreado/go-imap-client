@@ -3,8 +3,8 @@
 Requirements: https://github.com/logrusorgru/aurora
 
 Future plans:
-1. Validation of user login
-2. Get post-box info
-3. Get list of mails
-4. Get chosen mail
-5. Delete chosen mails
+- [x] Validation of user login
+- [ ] Get post-box info
+- [ ] Get list of mails
+- [ ] Get chosen mail
+- [ ] Delete chosen mails

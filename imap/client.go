@@ -61,12 +61,12 @@ func login(conn *tls.Conn, login string, pass string) []string {
 	return readBeforPrefixLine(conn, prefix)
 }
 
-func examine(conn io.Writer) {
+func examine(conn *tls.Conn) {
 	fmt.Println("Client->", Green("a2 examine inbox"))
 	fmt.Fprintf(conn, "a2 examine inbox\n")
 }
 
-func fetch(conn io.Writer) {
+func fetch(conn *tls.Conn) {
 	fmt.Println("Client->", Green("a3 fetch 1 (body[])"))
 	fmt.Fprintf(conn, "a3 fetch 1 (body[])\n")
 }
@@ -78,10 +78,6 @@ func logout(conn *tls.Conn) []string {
 
 	return readBeforPrefixLine(conn, prefix)
 }
-
-// 	2.3.4.  [RFC-2822] Size Message Attribute
-//    The number of octets in the message, as expressed in [RFC-2822]
-//    format.
 
 // readStrings - read the specified number of lines
 // conn : reading stream
@@ -101,6 +97,9 @@ func readStrings(conn io.Reader, num int) (text []string) {
 	return
 }
 
+// 	2.3.4.  [RFC-2822] Size Message Attribute
+//    The number of octets in the message, as expressed in [RFC-2822]
+//    format.
 func readBytes() {
 
 }

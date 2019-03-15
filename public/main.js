@@ -37,9 +37,16 @@ if (document.getElementById('login-button')) {
         }
             
         var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
+        xhr.onreadystatechange = () => {
             if (xhr.readyState == XMLHttpRequest.DONE) {
-                window.location.reload();
+                if (xhr.responseText === "true") {
+                    window.location.reload();
+                } else {
+                    document.getElementById("login").classList.add('error')
+                    document.getElementById("label-login").classList.add('error')
+                    document.getElementById("password").classList.add('error')
+                    document.getElementById("label-password").classList.add('error')
+                }
             }
         }
     
