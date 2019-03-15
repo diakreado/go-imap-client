@@ -32,19 +32,12 @@ func TryToLogin() (successful bool) {
 	successful = false
 	str := login(conn, authData.Login, authData.Password)
 	if len(str) > 0 {
-		fmt.Print(Magenta(str[len(str)-1]))
 		successful = responseParser(str[len(str)-1])
-		fmt.Println(Magenta(successful))
 	} else {
 		fmt.Println("Error->", Red("NO completed"))
 	}
 
 	str = logout(conn)
-	if len(str) > 0 {
-		fmt.Print(Magenta(str[len(str)-1]))
-	} else {
-		fmt.Println("Error->", Red("NO completed"))
-	}
 
 	return
 }
