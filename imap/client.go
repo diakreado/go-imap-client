@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,8 +17,8 @@ const (
 	port = ":993"
 )
 
-// GetPostBoxState - return state of post-box
-func GetPostBoxState() {
+// TryToLogin - return result of login
+func TryToLogin() (successful bool) {
 	authData := db.GetAuthData()
 
 	conn := createConn(authData.Server)
@@ -28,13 +29,24 @@ func GetPostBoxState() {
 
 	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 
-	str := readStrings(conn, 1)
-	fmt.Print(Magenta(str))
-	str = login(conn, authData.Login, authData.Password)
-	fmt.Print(Magenta(str))
-	logout(conn)
-	str = readStrings(conn, 2)
-	fmt.Print(Magenta(str))
+	successful = false
+	str := login(conn, authData.Login, authData.Password)
+	if len(str) > 0 {
+		fmt.Print(Magenta(str[len(str)-1]))
+		successful = responseParser(str[len(str)-1])
+		fmt.Println(Magenta(successful))
+	} else {
+		fmt.Println("Error->", Red("NO completed"))
+	}
+
+	str = logout(conn)
+	if len(str) > 0 {
+		fmt.Print(Magenta(str[len(str)-1]))
+	} else {
+		fmt.Println("Error->", Red("NO completed"))
+	}
+
+	return
 }
 
 // Set up tls connection
@@ -48,24 +60,12 @@ func createConn(server string) *tls.Conn {
 	return conn
 }
 
-func login(conn *tls.Conn, login string, pass string) (response string) {
-	prefix := "a1"
+func login(conn *tls.Conn, login string, pass string) []string {
+	prefix := "a0001"
 	fmt.Println("Client->", Green(prefix+" login "+login+"  ******"))
 	fmt.Fprintf(conn, prefix+" login "+login+" "+pass+"\n")
 
-	reader := bufio.NewReader(conn)
-	for {
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			break
-		}
-		response += line
-		fmt.Printf("Server-> %s", Cyan(line))
-		if strings.HasPrefix(line, prefix) {
-			break
-		}
-	}
-	return
+	return readBeforPrefixLine(conn, prefix)
 }
 
 func examine(conn io.Writer) {
@@ -78,9 +78,12 @@ func fetch(conn io.Writer) {
 	fmt.Fprintf(conn, "a3 fetch 1 (body[])\n")
 }
 
-func logout(conn io.Writer) {
-	fmt.Println("Client->", Green("a4 logout"))
-	fmt.Fprintf(conn, "a4 logout\n")
+func logout(conn *tls.Conn) []string {
+	prefix := "a0004"
+	fmt.Println("Client->", Green(prefix+" logout"))
+	fmt.Fprintf(conn, prefix+" logout\n")
+
+	return readBeforPrefixLine(conn, prefix)
 }
 
 // 	2.3.4.  [RFC-2822] Size Message Attribute
@@ -91,14 +94,15 @@ func logout(conn io.Writer) {
 // conn : reading stream
 // num : number of lines which should be reading
 // text : result of reading
-func readStrings(conn io.Reader, num int) (text string) {
+func readStrings(conn io.Reader, num int) (text []string) {
 	reader := bufio.NewReader(conn)
 	for index := 0; index < num; index++ {
 		line, err := reader.ReadString('\n')
 		if err != nil {
+			fmt.Println("Error->", Red(err))
 			break
 		}
-		text += line
+		text = append(text, line)
 		fmt.Printf("Server-> %s", Cyan(line))
 	}
 	return
@@ -106,4 +110,27 @@ func readStrings(conn io.Reader, num int) (text string) {
 
 func readBytes() {
 
+}
+
+func readBeforPrefixLine(conn *tls.Conn, prefix string) (response []string) {
+	reader := bufio.NewReader(conn)
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error->", Red(err))
+			break
+		}
+		response = append(response, line)
+		fmt.Printf("Server-> %s", Cyan(line))
+		if strings.HasPrefix(line, prefix) {
+			break
+		}
+	}
+	return
+}
+
+func responseParser(response string) (successful bool) {
+	var valid = regexp.MustCompile(`^.{5} OK `)
+	successful = valid.MatchString(response)
+	return
 }

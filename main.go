@@ -31,7 +31,7 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 	data := db.GetAuthData()
 
 	if data.Login != "" && data.Password != "" && data.Server != "" {
-		imap.GetPostBoxState()
+		fmt.Println(Brown(imap.TryToLogin()))
 		// fmt.Println("Succsessful authentication!")
 	}
 
