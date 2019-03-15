@@ -17,25 +17,20 @@ const (
 // Index(roote) route handler
 // read auth data from auth.json and show login/logout info
 // also view result of requset to imap server
-func indexHandler(w http.ResponseWriter, req *http.Request) {
+func indexHandler(res http.ResponseWriter, req *http.Request) {
 	t, err := template.ParseFiles(
 		"./templates/index.html",
 		"./templates/header.html",
 		"./templates/footer.html",
 		"./templates/content.html")
 	if err != nil {
-		fmt.Fprintf(w, err.Error())
+		fmt.Fprintf(res, err.Error())
 	}
 	fmt.Println(req.Method, req.URL)
 
 	data := db.GetAuthData()
 
-	// if data.Login != "" && data.Password != "" && data.Server != "" {
-	// fmt.Println(Brown(imap.TryToLogin()))
-	// fmt.Println("Succsessful authentication!")
-	// }
-
-	t.ExecuteTemplate(w, "index", data)
+	t.ExecuteTemplate(res, "index", data)
 }
 
 // Auth route hanlder
@@ -61,10 +56,22 @@ func authHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func faviconHandler(res http.ResponseWriter, req *http.Request) {
+	fmt.Fprint(res, "lol")
+}
+
+func stateHandler(res http.ResponseWriter, req *http.Request) {
+	fmt.Fprint(res, imap.GetListOfMails())
+	// 	http.Redirect(res, req, "/", http.StatusSeeOther)
+}
+
 func main() {
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public/"))))
+	http.HandleFunc("/favicon.ico", faviconHandler)
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/auth", authHandler)
+	http.HandleFunc("/state", stateHandler)
+
 	fmt.Println("Listening on port", Brown(port))
 	err := http.ListenAndServe(port, nil)
 	fmt.Println("Error creating http server:", Red(err))

@@ -1,17 +1,24 @@
 {{ define "content" }}
 
     <div class="content">
-        <div>
-            <h3>Содержание:</h3>
-            <p>1. Получение состояния ящика <br>(количество новых писем, их суммарная длина)</p>
-            <p>2. Получение списка заголовков писем</p>
-            <p>3. Загрузка выбранных писем</p>
-            <p>5. Удаление писем</p>
+        <div class="control-buttons">
+            <input type="button" class="blue-button" value="Get mails" id="get-mails-button"/>
+            <input type="button" class="blue-button" value="Delete" />
+            <input type="button" class="blue-button" value="One more" />
+        </div>
+
+        <div class="message-block">
+            <ul>
+                <li><span>16</span>  <span>Hatchful by Shopify</span>  <span>Your Hatchful brand assets</span> <span>Wed, 21 Nov 2018 16:30:01</span></li>
+    
+                <li><span>16</span>  <span>Hatchful by Shopify</span>  <span>Your Hatchful brand assets</span> <span>Wed, 21 Nov 2018 16:30:01</span></li>
+    
+                <li><span>16</span>  <span>Hatchful by Shopify</span>  <span>Your Hatchful brand assets</span> <span>Wed, 21 Nov 2018 16:30:01</span></li>
+    
+                <li><span>16</span>  <span>Hatchful by Shopify</span>  <span>Your Hatchful brand assets</span> <span>Wed, 21 Nov 2018 16:30:01</span></li>
+            </ul>
         </div>
         
-        <div class="but">
-            <input type="button" class="blue-button" value="Get state" />
-        </div>
     </div>
 
 {{ end }}

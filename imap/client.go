@@ -20,25 +20,43 @@ const (
 // TryToLogin - return result of login
 func TryToLogin() (successful bool) {
 	authData := db.GetAuthData()
-
 	conn := createConn(authData.Server)
 	defer func() {
 		conn.Close()
 		fmt.Println("Connection successful close")
 	}()
-
 	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 
 	successful = false
 	str := login(conn, authData.Login, authData.Password)
 	if len(str) > 0 {
-		successful = responseParser(str[len(str)-1])
+		successful = isOK(str[len(str)-1])
 	} else {
 		fmt.Println("Error->", Red("NO completed"))
 	}
+	logout(conn)
+	return
+}
 
-	str = logout(conn)
+// GetListOfMails - return array of string
+func GetListOfMails() (messages []string) {
+	authData := db.GetAuthData()
+	conn := createConn(authData.Server)
+	defer func() {
+		conn.Close()
+		fmt.Println("Connection successful close")
+	}()
+	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 
+	login(conn, authData.Login, authData.Password)
+	examine(conn)
+	response := fetchHeader(conn)
+	if len(response) > 0 {
+		messages = mergeResponse(response)
+	} else {
+		fmt.Println("Error->", Red("NO completed"))
+	}
+	logout(conn)
 	return
 }
 
@@ -61,18 +79,24 @@ func login(conn *tls.Conn, login string, pass string) []string {
 	return readBeforPrefixLine(conn, prefix)
 }
 
-func examine(conn *tls.Conn) {
-	fmt.Println("Client->", Green("a2 examine inbox"))
-	fmt.Fprintf(conn, "a2 examine inbox\n")
+func examine(conn *tls.Conn) []string {
+	prefix := "a0002"
+	fmt.Println("Client->", Green(prefix+" examine inbox"))
+	fmt.Fprintf(conn, prefix+" examine inbox\n")
+
+	return readBeforPrefixLine(conn, prefix)
 }
 
-func fetch(conn *tls.Conn) {
-	fmt.Println("Client->", Green("a3 fetch 1 (body[])"))
-	fmt.Fprintf(conn, "a3 fetch 1 (body[])\n")
+func fetchHeader(conn *tls.Conn) []string {
+	prefix := "a0003"
+	fmt.Println("Client->", Green(prefix+" fetch 1:* (ENVELOPE) "))
+	fmt.Fprintf(conn, prefix+" fetch 1:* (ENVELOPE) \n")
+
+	return readBeforPrefixLine(conn, prefix)
 }
 
 func logout(conn *tls.Conn) []string {
-	prefix := "a0004"
+	prefix := "a0005"
 	fmt.Println("Client->", Green(prefix+" logout"))
 	fmt.Fprintf(conn, prefix+" logout\n")
 
@@ -121,8 +145,24 @@ func readBeforPrefixLine(conn *tls.Conn, prefix string) (response []string) {
 	return
 }
 
-func responseParser(response string) (successful bool) {
+func isOK(response string) (successful bool) {
 	var valid = regexp.MustCompile(`^.{5} OK `)
 	successful = valid.MatchString(response)
+	return
+}
+
+// convert number of string to number of message
+func mergeResponse(response []string) (result []string) {
+	var valid = regexp.MustCompile(`^\* ([0-9]+) FETCH `)
+	var lenght = len(response)
+	for i, line := range response {
+		if valid.MatchString(line) {
+			result = append(result, line)
+		} else {
+			if i != lenght-1 {
+				result[len(result)-1] += line
+			}
+		}
+	}
 	return
 }

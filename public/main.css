@@ -100,7 +100,7 @@ input.blue-button {
     display: inline-block;
     border: none;
     padding: 1rem 2rem;
-    margin: 0;
+    margin: 2px;
     text-decoration: none;
     background: #0069ed;
     color: #ffffff;
@@ -145,17 +145,48 @@ label.error  {
 }
 
 .content {
-    flex: 0;
+    flex: 1;
     display: flex;
-    flex-direction: inline;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     margin: 35px;
     font-size: 18px;
 }
 
-.content h3 {
-    margin-bottom: 15px;
+.control-buttons {
+    flex: 0;
+    display: flex;
+    flex-direction: inline;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
 }
-.content p {
-    margin-bottom: 15px;
+
+.message-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: start;
+    width: 100%;
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    border: 1px solid #757575;
+}
+
+.message-block ul {
+    list-style: none;
+    padding: 10px;
+}
+
+.message-block li {
+    display: flex;
+    flex-direction: inline;
+    justify-content: space-between;
+}
+
+.mail-number {
+    flex: 0;
 }

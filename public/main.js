@@ -59,3 +59,21 @@ if (document.getElementById('login-button')) {
         xhr.send(body);
     });
 } 
+
+
+if (document.getElementById('get-mails-button')) {
+    document.getElementById('get-mails-button').addEventListener("click", event => {
+        event.preventDefault();
+             
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                console.log(xhr.responseText);
+            }
+        }
+        
+        xhr.open("GET", '/state', true);
+        xhr.send();
+        
+    });
+}
