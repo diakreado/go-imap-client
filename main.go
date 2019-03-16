@@ -18,19 +18,19 @@ const (
 // read auth data from auth.json and show login/logout info
 // also view result of requset to imap server
 func indexHandler(res http.ResponseWriter, req *http.Request) {
-	t, err := template.ParseFiles(
-		"./templates/index.html",
-		"./templates/header.html",
-		"./templates/footer.html",
-		"./templates/content.html")
-	if err != nil {
-		fmt.Fprintf(res, err.Error())
-	}
+	templates := template.Must(template.ParseGlob("./templates/*"))
 	fmt.Println(req.Method, req.URL)
 
-	data := db.GetAuthData()
+	authData := db.GetAuthData()
+	envelopeData := imap.GetListOfMails()
+	data := struct {
+		Auth     db.AuthData
+		Envelope []imap.Envelope
+	}{
+		authData,
+		envelopeData}
 
-	t.ExecuteTemplate(res, "index", data)
+	templates.ExecuteTemplate(res, "index", data)
 }
 
 // Auth route hanlder
@@ -60,17 +60,17 @@ func faviconHandler(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprint(res, "lol")
 }
 
-func stateHandler(res http.ResponseWriter, req *http.Request) {
-	fmt.Fprint(res, imap.GetListOfMails())
-	// 	http.Redirect(res, req, "/", http.StatusSeeOther)
-}
+// func stateHandler(res http.ResponseWriter, req *http.Request) {
+// 	fmt.Fprint(res, imap.GetListOfMails())
+// 	// 	http.Redirect(res, req, "/", http.StatusSeeOther)
+// }
 
 func main() {
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public/"))))
 	http.HandleFunc("/favicon.ico", faviconHandler)
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/auth", authHandler)
-	http.HandleFunc("/state", stateHandler)
+	// http.HandleFunc("/state", stateHandler)
 
 	fmt.Println("Listening on port", Brown(port))
 	err := http.ListenAndServe(port, nil)

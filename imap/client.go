@@ -17,6 +17,13 @@ const (
 	port = ":993"
 )
 
+// Envelope - struct for data from envelope of mails
+type Envelope struct {
+	Date    string `json:"date"`
+	Subject string `json:"subject"`
+	Contact string `json:"contact"`
+}
+
 // TryToLogin - return result of login
 func TryToLogin() (successful bool) {
 	authData := db.GetAuthData()
@@ -39,7 +46,7 @@ func TryToLogin() (successful bool) {
 }
 
 // GetListOfMails - return array of string
-func GetListOfMails() (messages []string) {
+func GetListOfMails() (messages []Envelope) {
 	authData := db.GetAuthData()
 	conn := createConn(authData.Server)
 	defer func() {
@@ -52,7 +59,8 @@ func GetListOfMails() (messages []string) {
 	examine(conn)
 	response := fetchHeader(conn)
 	if len(response) > 0 {
-		messages = mergeResponse(response)
+		evelope := mergeStringsToMessages(response)
+		messages = extractUsefulData(evelope)
 	} else {
 		fmt.Println("Error->", Red("NO completed"))
 	}
@@ -151,8 +159,9 @@ func isOK(response string) (successful bool) {
 	return
 }
 
-// convert number of string to number of message
-func mergeResponse(response []string) (result []string) {
+// convert strings to messages
+// some messages can contain from many strings
+func mergeStringsToMessages(response []string) (result []string) {
 	var valid = regexp.MustCompile(`^\* ([0-9]+) FETCH `)
 	var lenght = len(response)
 	for i, line := range response {
@@ -163,6 +172,33 @@ func mergeResponse(response []string) (result []string) {
 				result[len(result)-1] += line
 			}
 		}
+	}
+	return
+}
+
+func extractUsefulData(response []string) (result []Envelope) {
+	var dateRegexp = regexp.MustCompile(`[a-zA-Z]{3},  ?(\d+) [a-zA-Z]{3} \d{4}`)
+	var subjectRegexp = regexp.MustCompile(`" "(.)*" \(\(`)
+	var contactRegexp = regexp.MustCompile(`" \(\(("[\w!&= (\-)(\.)(\?)@]*"|NIL) ("[\w!&= (\-)(\.)(\?)@]*"|NIL) ("[\w!&= (\-)(\.)(\?)@]*"|NIL) ("[\w!&= (\-)(\.)(\?)@]*"|NIL)\)\)`)
+	for _, line := range response {
+		date := dateRegexp.FindString(line)
+
+		subject := ""
+		matchesSubject := subjectRegexp.FindString(line)
+		a1 := []rune(matchesSubject)
+		if len(matchesSubject) > 7 {
+			subject = string(a1[3 : len(matchesSubject)-4])
+		}
+
+		matchesContact := contactRegexp.FindString(line)
+		contact := ""
+		a2 := []rune(matchesContact)
+		if len(matchesContact) > 6 {
+			contact = string(a2[4 : len(matchesContact)-2])
+		}
+
+		envelope := Envelope{date, subject, contact}
+		result = append(result, envelope)
 	}
 	return
 }

@@ -6,17 +6,17 @@
             <h2>Wellcome to IMAP client app!</h2>
         </div>
 
-        {{ if and .Login .Password .Server }}
+        {{ if and .Auth.Login .Auth.Password .Auth.Server }}
 
             <div class="config-data">
                 <div class="choose-server">
                     <h3>Server:</h3>
-                    <p>{{ .Server }}</p>
+                    <p>{{ .Auth.Server }}</p>
                 </div>
 
                 <div class="login-block" id="login-block">
                     <h3>Login:</h3>
-                    <p>{{ .Login }}</p>
+                    <p>{{ .Auth.Login }}</p>
                 </div>
 
                 <div class="login-button-block">
@@ -27,7 +27,7 @@
             <hr/>
                     
             <div class="output">
-                {{ template "content" }}
+                {{ template "content" . }}
             </div>
 
         {{ else }}

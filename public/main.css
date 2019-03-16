@@ -176,17 +176,22 @@ label.error  {
     border: 1px solid #757575;
 }
 
-.message-block ul {
-    list-style: none;
-    padding: 10px;
-}
-
-.message-block li {
+.message {
     display: flex;
     flex-direction: inline;
     justify-content: space-between;
+    padding: 10px;
+    flex-wrap: wrap;
 }
-
-.mail-number {
-    flex: 0;
+.contact {
+    display: flex;
+    flex-direction: column;
+}
+.subject {
+    display: flex;
+    flex-direction: column;
+}
+.date {
+    display: flex;
+    flex-direction: column;
 }
