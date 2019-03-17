@@ -1,6 +1,7 @@
 # go-imap-client
 
-Requirements: https://github.com/logrusorgru/aurora
+Requirements: github.com/logrusorgru/aurora
+              golang.org/x/net/html/charset"
 
 Future plans:
 - [x] Validation of user login

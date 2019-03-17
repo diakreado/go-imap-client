@@ -10,11 +10,11 @@
         <div class="message-block">
             {{ range .Envelope }}
                 <div class="message">
-                    <div class="contact">
-                        {{ .Contact }}
+                    <div class="contact" title="{{ .Sender }} {{.Email }}">
+                        {{ trunc 20 .Sender }}
                     </div>
-                    <div class="subject">
-                        {{ .Subject }}
+                    <div class="subject" title="{{ .Subject }}">
+                        {{ trunc 50 .Subject }}
                     </div>
                     <div class="date">
                         {{ .Date }}

@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"mime"
 	"regexp"
 	"strings"
 	"time"
@@ -19,9 +20,10 @@ const (
 
 // Envelope - struct for data from envelope of mails
 type Envelope struct {
-	Date    string `json:"date"`
-	Subject string `json:"subject"`
-	Contact string `json:"contact"`
+	Date    string
+	Subject string
+	Sender  string
+	Email   string
 }
 
 // TryToLogin - return result of login
@@ -187,18 +189,75 @@ func extractUsefulData(response []string) (result []Envelope) {
 		matchesSubject := subjectRegexp.FindString(line)
 		a1 := []rune(matchesSubject)
 		if len(matchesSubject) > 7 {
-			subject = string(a1[3 : len(matchesSubject)-4])
+			subject = utf8Decoder(string(a1[3 : len(matchesSubject)-4]))
 		}
 
 		matchesContact := contactRegexp.FindString(line)
-		contact := ""
+		sender := ""
+		email := ""
 		a2 := []rune(matchesContact)
 		if len(matchesContact) > 6 {
-			contact = string(a2[4 : len(matchesContact)-2])
+			sender, email = contactParser(string(a2[4 : len(matchesContact)-2]))
 		}
 
-		envelope := Envelope{date, subject, contact}
+		envelope := Envelope{date, subject, sender, email}
 		result = append(result, envelope)
+	}
+	return
+}
+
+func contactParser(contact string) (sender, email string) {
+	parts := strings.Split(contact, "\"")
+	var codeNil = regexp.MustCompile(`NIL`)
+	var partOfContact []string
+	for _, part := range parts {
+		if !codeNil.MatchString(part) && part != "" && part != " " {
+			partOfContact = append(partOfContact, utf8Decoder(part))
+		}
+	}
+	switch len(partOfContact) {
+	case 1:
+		{
+			sender = fmt.Sprintf("%s", partOfContact[0])
+		}
+	case 2:
+		{
+			sender = fmt.Sprintf("%s", partOfContact[0])
+			email = fmt.Sprintf("<%s@%s>", partOfContact[0], partOfContact[1])
+		}
+	case 3:
+		{
+			sender = fmt.Sprintf("%s", partOfContact[0])
+			email = fmt.Sprintf("<%s@%s>", partOfContact[1], partOfContact[2])
+		}
+	case 4:
+		{
+			sender = fmt.Sprintf("%s %s", partOfContact[0], partOfContact[1])
+			email = fmt.Sprintf("<%s@%s>", partOfContact[2], partOfContact[3])
+		}
+	}
+	return
+}
+
+func utf8Decoder(text string) (result string) {
+	var codeUTF8 = regexp.MustCompile(`=\?(utf-8|UTF-8)\?[\w!&=/(\-)(\|)(\.)(\?)(\+)#@]*\?=`)
+	dec := new(mime.WordDecoder)
+	if codeUTF8.MatchString(text) {
+		var b strings.Builder
+		parts := strings.Split(text, " ")
+		for _, part := range parts {
+			if part != "" && part != " " {
+				if codeUTF8.MatchString(part) {
+					decodedText, _ := dec.Decode(part)
+					b.WriteString(decodedText)
+				} else {
+					b.WriteString(part)
+				}
+			}
+		}
+		result = b.String()
+	} else {
+		result = text
 	}
 	return
 }

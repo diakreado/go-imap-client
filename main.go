@@ -18,7 +18,19 @@ const (
 // read auth data from auth.json and show login/logout info
 // also view result of requset to imap server
 func indexHandler(res http.ResponseWriter, req *http.Request) {
-	templates := template.Must(template.ParseGlob("./templates/*"))
+
+	funcMap := template.FuncMap{
+		"trunc": func(c int, s string) string {
+			runes := []rune(s)
+			if len(runes) <= c {
+				return s
+			}
+			return string(runes[:c]) + "..."
+		},
+	}
+
+	templates := template.Must(template.New("main").Funcs(funcMap).ParseGlob("./templates/*"))
+	templates.Funcs(funcMap)
 	fmt.Println(req.Method, req.URL)
 
 	authData := db.GetAuthData()
