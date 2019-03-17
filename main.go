@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"regexp"
 
 	db "./db"
 	imap "./imap"
@@ -14,11 +15,19 @@ const (
 	port = ":3000"
 )
 
+func isLocalhost(remoteAddr string) bool {
+	var localhost = regexp.MustCompile(`127.0.0.1:`)
+	return localhost.MatchString(remoteAddr)
+}
+
 // Index(roote) route handler
 // read auth data from auth.json and show login/logout info
 // also view result of requset to imap server
 func indexHandler(res http.ResponseWriter, req *http.Request) {
-
+	if !isLocalhost(req.RemoteAddr) {
+		http.Redirect(res, req, "http://www.google.com", http.StatusSeeOther)
+		return
+	}
 	funcMap := template.FuncMap{
 		"trunc": func(c int, s string) string {
 			runes := []rune(s)
@@ -26,6 +35,9 @@ func indexHandler(res http.ResponseWriter, req *http.Request) {
 				return s
 			}
 			return string(runes[:c]) + "..."
+		},
+		"dec": func(i int) int {
+			return i - 1
 		},
 	}
 
@@ -49,6 +61,10 @@ func indexHandler(res http.ResponseWriter, req *http.Request) {
 // write data from Post request to auth.json
 // and send redirect to index(root)
 func authHandler(res http.ResponseWriter, req *http.Request) {
+	if !isLocalhost(req.RemoteAddr) {
+		http.Redirect(res, req, "http://www.google.com", http.StatusSeeOther)
+		return
+	}
 	fmt.Println(req.Method, req.URL)
 	err := req.ParseForm()
 	if err != nil {
@@ -72,17 +88,11 @@ func faviconHandler(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprint(res, "lol")
 }
 
-// func stateHandler(res http.ResponseWriter, req *http.Request) {
-// 	fmt.Fprint(res, imap.GetListOfMails())
-// 	// 	http.Redirect(res, req, "/", http.StatusSeeOther)
-// }
-
 func main() {
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public/"))))
 	http.HandleFunc("/favicon.ico", faviconHandler)
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/auth", authHandler)
-	// http.HandleFunc("/state", stateHandler)
 
 	fmt.Println("Listening on port", Brown(port))
 	err := http.ListenAndServe(port, nil)

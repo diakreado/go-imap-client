@@ -45,9 +45,9 @@ button::-moz-focus-inner {
 
 .config-data {
     display: flex;
-    flex-direction: inline;
+    flex-direction: row;
     justify-content: space-between;
-    min-width: 100vw;
+    width: 100%;
     flex: 0;
     flex-wrap: wrap;
     font-size: 18px;
@@ -138,7 +138,7 @@ label.error  {
 
 .output {
     flex: 1;
-    min-width: 100vw;
+    width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: start;
@@ -157,7 +157,7 @@ label.error  {
 .control-buttons {
     flex: 0;
     display: flex;
-    flex-direction: inline;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
@@ -167,7 +167,7 @@ label.error  {
 .message-block {
     flex: 1;
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     align-items: left;
     justify-content: start;
     width: 100%;
@@ -179,15 +179,21 @@ label.error  {
 
 .message {
     display: flex;
-    flex-direction: inline;
+    flex-direction: row;
     justify-content: space-between;
     padding: 10px;
     flex-wrap: wrap;
+}
+.unseen {
+    background-color: #6addf12a;
 }
 .contact {
     flex: 2;
     display: flex;
     flex-direction: column;
+}
+.unseen .contact {
+    font-weight:bold;
 }
 .subject {
     flex: 5;
@@ -196,7 +202,13 @@ label.error  {
     justify-content: start;
     align-items: left;
 }
+.unseen .subject {
+    font-weight:bold;
+}
 .date {
     display: flex;
     flex-direction: column;
+}
+.message-block hr {
+    color: #e7e7e7;
 }

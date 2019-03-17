@@ -8,13 +8,14 @@
         </div>
 
         <div class="message-block">
-            {{ range .Envelope }}
-                <div class="message">
+            {{ range $key, $value := .Envelope }}
+                {{ if not (eq $key 0) }} <hr noshade> {{ end }}
+                <div class="message {{ if not .Seen }}unseen{{ end }}">
                     <div class="contact" title="{{ .Sender }} {{.Email }}">
-                        {{ trunc 20 .Sender }}
+                        {{ trunc 20 $value.Sender }}
                     </div>
                     <div class="subject" title="{{ .Subject }}">
-                        {{ trunc 50 .Subject }}
+                        {{ trunc 50 $value.Subject }}
                     </div>
                     <div class="date">
                         {{ .Date }}
