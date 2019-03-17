@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	. "github.com/logrusorgru/aurora"
 )
 
 func isOK(response string) (successful bool) {
@@ -35,6 +37,7 @@ func extractUsefulData(response []string, unseen []int) (result []Envelope) {
 	var dateRegexp = regexp.MustCompile(`[a-zA-Z]{3},  ?(\d+) [a-zA-Z]{3} \d{4}`)
 	var subjectRegexp = regexp.MustCompile(`" "(.)*" \(\(`)
 	var contactRegexp = regexp.MustCompile(`" \(\(("[\w!&= (\-)(\.)(\?)@]*"|NIL) ("[\w!&= (\-)(\.)(\?)@]*"|NIL) ("[\w!&= (\-)(\.)(\?)@]*"|NIL) ("[\w!&= (\-)(\.)(\?)@]*"|NIL)\)\)`)
+	var uidRegexp = regexp.MustCompile(`UID \d+`)
 	for i, line := range response {
 		date := dateRegexp.FindString(line)
 
@@ -53,7 +56,12 @@ func extractUsefulData(response []string, unseen []int) (result []Envelope) {
 			sender, email = contactParser(string(a2[4 : len(matchesContact)-2]))
 		}
 
-		envelope := Envelope{date, subject, sender, email, !contains(unseen, i+1)}
+		uid, err := strconv.Atoi(strings.Split(uidRegexp.FindString(line), " ")[1])
+		if err != nil {
+			fmt.Println("UID Atoi :", Red(err))
+		}
+
+		envelope := Envelope{date, subject, sender, email, !contains(unseen, i+1), uid}
 		result = append(result, envelope)
 	}
 	return

@@ -15,6 +15,24 @@ const (
 	port = ":3000"
 )
 
+type Data struct {
+	Auth     db.AuthData
+	Envelope []imap.Envelope
+}
+
+var funcMap = template.FuncMap{
+	"trunc": func(c int, s string) string {
+		runes := []rune(s)
+		if len(runes) <= c {
+			return s
+		}
+		return string(runes[:c]) + "..."
+	},
+	"dec": func(i int) int {
+		return i - 1
+	},
+}
+
 func isLocalhost(remoteAddr string) bool {
 	var localhost = regexp.MustCompile(`127.0.0.1:`)
 	return localhost.MatchString(remoteAddr)
@@ -25,36 +43,39 @@ func isLocalhost(remoteAddr string) bool {
 // also view result of requset to imap server
 func indexHandler(res http.ResponseWriter, req *http.Request) {
 	if !isLocalhost(req.RemoteAddr) {
-		http.Redirect(res, req, "http://www.google.com", http.StatusSeeOther)
+		http.Redirect(res, req, "https://http://hyperborea-theatre.ru/", http.StatusSeeOther)
 		return
 	}
-	funcMap := template.FuncMap{
-		"trunc": func(c int, s string) string {
-			runes := []rune(s)
-			if len(runes) <= c {
-				return s
-			}
-			return string(runes[:c]) + "..."
-		},
-		"dec": func(i int) int {
-			return i - 1
-		},
-	}
-
-	templates := template.Must(template.New("main").Funcs(funcMap).ParseGlob("./templates/*"))
-	templates.Funcs(funcMap)
 	fmt.Println(req.Method, req.URL)
 
+	templates := template.Must(template.New("main").Funcs(funcMap).ParseGlob("./templates/*"))
+
 	authData := db.GetAuthData()
-	envelopeData := imap.GetListOfMails()
-	data := struct {
-		Auth     db.AuthData
-		Envelope []imap.Envelope
-	}{
-		authData,
-		envelopeData}
+
+	var data Data
+	if authData.Login != "" && authData.Password != "" && authData.Server != "" {
+		envelopeData := imap.GetListOfMails()
+
+		data.Auth = authData
+		data.Envelope = envelopeData
+	}
 
 	templates.ExecuteTemplate(res, "index", data)
+}
+
+func letterHandler(res http.ResponseWriter, req *http.Request) {
+	if !isLocalhost(req.RemoteAddr) {
+		http.Redirect(res, req, "https://http://hyperborea-theatre.ru/", http.StatusSeeOther)
+		return
+	}
+	uid := req.FormValue("uid")
+	fmt.Println(req.Method, req.URL)
+
+	templates := template.Must(template.New("main").Funcs(funcMap).ParseGlob("./templates/*"))
+
+	letter := imap.GetLetter(uid)
+
+	templates.ExecuteTemplate(res, "letter", letter)
 }
 
 // Auth route hanlder
@@ -62,7 +83,7 @@ func indexHandler(res http.ResponseWriter, req *http.Request) {
 // and send redirect to index(root)
 func authHandler(res http.ResponseWriter, req *http.Request) {
 	if !isLocalhost(req.RemoteAddr) {
-		http.Redirect(res, req, "http://www.google.com", http.StatusSeeOther)
+		http.Redirect(res, req, "https://http://hyperborea-theatre.ru/", http.StatusSeeOther)
 		return
 	}
 	fmt.Println(req.Method, req.URL)
@@ -93,6 +114,7 @@ func main() {
 	http.HandleFunc("/favicon.ico", faviconHandler)
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/auth", authHandler)
+	http.HandleFunc("/letter", letterHandler)
 
 	fmt.Println("Listening on port", Brown(port))
 	err := http.ListenAndServe(port, nil)

@@ -3,6 +3,7 @@ package imap
 import (
 	"crypto/tls"
 	"fmt"
+	"strconv"
 
 	. "github.com/logrusorgru/aurora"
 )
@@ -25,8 +26,8 @@ func examine(conn *tls.Conn) []string {
 
 func fetchHeader(conn *tls.Conn) []string {
 	prefix := "a0003"
-	fmt.Println("Client->", Green(prefix+" fetch 1:* (ENVELOPE) "))
-	fmt.Fprintf(conn, prefix+" fetch 1:* (ENVELOPE) \n")
+	fmt.Println("Client->", Green(prefix+" fetch 1:* (ENVELOPE UID) "))
+	fmt.Fprintf(conn, prefix+" fetch 1:* (ENVELOPE UID) \n")
 
 	return readBeforPrefixLine(conn, prefix)
 }
@@ -39,8 +40,24 @@ func searchUnseen(conn *tls.Conn) []string {
 	return readBeforPrefixLine(conn, prefix)
 }
 
-func logout(conn *tls.Conn) []string {
+func findLetter(conn *tls.Conn, uid string) []string {
+	prefix := "a0005"
+	fmt.Println("Client->", Green(prefix+" search UID "+uid))
+	fmt.Fprintf(conn, "%s search UID %s\n", prefix, uid)
+
+	return readBeforPrefixLine(conn, prefix)
+}
+
+func fetchLetter(conn *tls.Conn, num int) []string {
 	prefix := "a0006"
+	fmt.Println("Client->", Green(prefix+" fetch "+strconv.Itoa(num)+" (body[])"))
+	fmt.Fprintf(conn, "%s fetch %d (body[]) \n", prefix, num)
+
+	return readBeforPrefixLine(conn, prefix)
+}
+
+func logout(conn *tls.Conn) []string {
+	prefix := "a0007"
 	fmt.Println("Client->", Green(prefix+" logout"))
 	fmt.Fprintf(conn, prefix+" logout\n")
 

@@ -3,6 +3,7 @@ package imap
 import (
 	"crypto/tls"
 	"fmt"
+	"strings"
 	"time"
 
 	db "../db"
@@ -20,6 +21,11 @@ type Envelope struct {
 	Sender  string
 	Email   string
 	Seen    bool
+	UID     int
+}
+
+type Letter struct {
+	Text string
 }
 
 // TryToLogin - return result of login
@@ -64,6 +70,33 @@ func GetListOfMails() (envelopes []Envelope) {
 	} else {
 		fmt.Println("Error->", Red("NO completed"))
 	}
+	logout(conn)
+	return
+}
+
+// GetLetter - find by UID letter and return it
+func GetLetter(uid string) (letter Letter) {
+	authData := db.GetAuthData()
+	conn := createConn(authData.Server)
+	defer func() {
+		conn.Close()
+		fmt.Println("Connection successful close")
+	}()
+	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+
+	login(conn, authData.Login, authData.Password)
+	examine(conn)
+
+	letterNum := parseSearch(findLetter(conn, uid))[0]
+	letterText := fetchLetter(conn, letterNum)
+
+	var b strings.Builder
+	for _, line := range letterText {
+		b.WriteString(line)
+	}
+
+	letter.Text = b.String()
+
 	logout(conn)
 	return
 }

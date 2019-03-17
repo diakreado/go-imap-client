@@ -131,11 +131,6 @@ label.error  {
     color: #cc0033;
 }
 
-.app-link {
-    color: #61dafb;
-    text-decoration: none;
-}
-
 .output {
     flex: 1;
     width: 100%;
@@ -151,7 +146,7 @@ label.error  {
     align-items: center;
     justify-content: center;
     margin: 35px;
-    font-size: 18px;
+    font-size: 17px;
 }
 
 .control-buttons {
@@ -178,19 +173,32 @@ label.error  {
 }
 
 .message {
+    color: #333032;
+    text-decoration: none;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     padding: 10px;
     flex-wrap: wrap;
 }
-.unseen {
-    background-color: #6addf12a;
+.message:hover {
+    background-color: #f7ee7a2a;
 }
+
+.unseen {
+    background-color: #a3a8a82a;
+}
+
 .contact {
     flex: 2;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-right: 15px;
+}
+.funny-ball {
+    color: #0069ed;
 }
 .unseen .contact {
     font-weight:bold;
@@ -208,6 +216,7 @@ label.error  {
 .date {
     display: flex;
     flex-direction: column;
+    align-items: right;
 }
 .message-block hr {
     color: #e7e7e7;
