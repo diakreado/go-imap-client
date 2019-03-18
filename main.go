@@ -36,6 +36,7 @@ var funcMap = template.FuncMap{
 func isLocalhost(remoteAddr string) bool {
 	var localhost = regexp.MustCompile(`127.0.0.1:`)
 	return localhost.MatchString(remoteAddr)
+	// return true
 }
 
 // Index(roote) route handler

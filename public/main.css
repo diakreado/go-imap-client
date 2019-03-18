@@ -182,11 +182,20 @@ label.error  {
     flex-wrap: wrap;
 }
 .message:hover {
-    background-color: #f7ee7a2a;
+    background-color: #fdf25c65;
+}
+
+.message:hover .funny-ball {
+    display: block;
 }
 
 .unseen {
     background-color: #a3a8a82a;
+}
+
+.unseen .funny-ball{
+    display: block;
+    color: #0069ed;
 }
 
 .contact {
@@ -198,7 +207,8 @@ label.error  {
     margin-right: 15px;
 }
 .funny-ball {
-    color: #0069ed;
+    display: none;
+    color: #cfcfcf;
 }
 .unseen .contact {
     font-weight:bold;

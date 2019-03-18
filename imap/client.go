@@ -3,7 +3,6 @@ package imap
 import (
 	"crypto/tls"
 	"fmt"
-	"strings"
 	"time"
 
 	db "../db"
@@ -60,7 +59,7 @@ func GetListOfMails() (envelopes []Envelope) {
 	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 
 	login(conn, authData.Login, authData.Password)
-	examine(conn)
+	examineInbox(conn)
 	responseFetch := fetchHeader(conn)
 	responseSearch := searchUnseen(conn)
 	if len(responseFetch) > 0 && len(responseSearch) > 0 {
@@ -85,17 +84,12 @@ func GetLetter(uid string) (letter Letter) {
 	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 
 	login(conn, authData.Login, authData.Password)
-	examine(conn)
+	selectInbox(conn)
 
 	letterNum := parseSearch(findLetter(conn, uid))[0]
 	letterText := fetchLetter(conn, letterNum)
 
-	var b strings.Builder
-	for _, line := range letterText {
-		b.WriteString(line)
-	}
-
-	letter.Text = b.String()
+	parseLetter(letterText)
 
 	logout(conn)
 	return

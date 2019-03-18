@@ -12,7 +12,7 @@
                 {{ if not (eq $key 0) }} <hr noshade> {{ end }}
                 <a href="/letter?uid={{ $value.UID }}" class="message {{ if not .Seen }}unseen{{ end }}">
                     <div class="contact" title="{{ .Sender }} {{.Email }}">
-                        <span>{{ trunc 20 $value.Sender }}</span> <span class="funny-ball">{{ if not .Seen }} &#9679; {{ end }} </span>
+                        <span>{{ trunc 20 $value.Sender }}</span> <span class="funny-ball">&#9679;</span>
                     </div>
                     <div class="subject" title="{{ .Subject }}">
                         {{ trunc 50 $value.Subject }}

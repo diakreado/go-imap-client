@@ -58,5 +58,14 @@ if (document.getElementById('login-button')) {
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.send(body);
     });
-} 
+}
 
+if (document.getElementsByClassName('message')) {
+    const list = document.getElementsByClassName('message');
+    for (let item of list) {
+        item.addEventListener("click", event => {
+            item.classList.remove("unseen");
+        });
+    }
+
+}

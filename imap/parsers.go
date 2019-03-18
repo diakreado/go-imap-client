@@ -1,8 +1,10 @@
 package imap
 
 import (
+	"bytes"
 	"fmt"
 	"mime"
+	"net/mail"
 	"regexp"
 	"strconv"
 	"strings"
@@ -36,7 +38,7 @@ func mergeStringsToMessages(response []string) (result []string) {
 func extractUsefulData(response []string, unseen []int) (result []Envelope) {
 	var dateRegexp = regexp.MustCompile(`[a-zA-Z]{3},  ?(\d+) [a-zA-Z]{3} \d{4}`)
 	var subjectRegexp = regexp.MustCompile(`" "(.)*" \(\(`)
-	var contactRegexp = regexp.MustCompile(`" \(\(("[\w!&= (\-)(\.)(\?)@]*"|NIL) ("[\w!&= (\-)(\.)(\?)@]*"|NIL) ("[\w!&= (\-)(\.)(\?)@]*"|NIL) ("[\w!&= (\-)(\.)(\?)@]*"|NIL)\)\)`)
+	var contactRegexp = regexp.MustCompile(`" \(\(("[\w!&=/, (\-)(\|)(\.)(\?)(\+):#@]*"|NIL) ("[\w!&=/, (\-)(\|)(\.)(\?)(\+):#@]*"|NIL) ("[\w!&=/, (\-)(\|)(\.)(\?)(\+):#@]*"|NIL) ("[\w!&=/, (\-)(\|)(\.)(\?)(\+):#@]*"|NIL)\)\)`)
 	var uidRegexp = regexp.MustCompile(`UID \d+`)
 	for i, line := range response {
 		date := dateRegexp.FindString(line)
@@ -101,7 +103,7 @@ func contactParser(contact string) (sender, email string) {
 }
 
 func utf8Decoder(text string) (result string) {
-	var codeUTF8 = regexp.MustCompile(`=\?(utf-8|UTF-8)\?[\w!&=/(\-)(\|)(\.)(\?)(\+)#@]*\?=`)
+	var codeUTF8 = regexp.MustCompile(`=\?(utf-8|UTF-8)\?[\w!&=/, (\-)(\|)(\.)(\?)(\+):#@]*\?=`)
 	dec := new(mime.WordDecoder)
 	if codeUTF8.MatchString(text) {
 		var b strings.Builder
@@ -133,5 +135,80 @@ func parseSearch(response []string) (result []int) {
 			}
 		}
 	}
+	return
+}
+
+func parseLetter1(letter []string) (date, subject, from, to string) {
+	var b strings.Builder
+	for _, line := range letter {
+		if !strings.HasSuffix(line, "\n") {
+			fmt.Println("lol")
+		}
+
+		b.WriteString(line)
+	}
+	strLetter := b.String()
+
+	var dateRegexp = regexp.MustCompile(`Date: [\w!&=/, (\-)(\|)(\.)(\?)(\+):#@]*`)
+	var usefulDate = regexp.MustCompile(`[a-zA-Z]{3},  ?(\d+) [a-zA-Z]{3} \d{4} \d+:\d+`)
+	dateInText := dateRegexp.FindString(strLetter)
+	date = usefulDate.FindString(dateInText)
+
+	var subjectRegexp = regexp.MustCompile(`Subject: [\w!&=/, "<>(\-)(\|)(\.)(\?)(\+):#@]*`)
+	subjectInText := subjectRegexp.FindString(strLetter)
+	if len(subjectInText) > 9 {
+		subject = utf8Decoder(subjectInText[9:])
+	}
+
+	var fromRegexp = regexp.MustCompile(`From: [\w!&=/, "<>(\-)(\|)(\.)(\?)(\+):#@]*`)
+	fromInText := fromRegexp.FindString(strLetter)
+	if len(fromInText) > 6 {
+		from = utf8Decoder(fromInText[6:])
+	}
+
+	var toRegexp = regexp.MustCompile(`To: [\w!&=/, "<>(\-)(\|)(\.)(\?)(\+):#@]*`)
+	toInText := toRegexp.FindString(strLetter)
+	if len(toInText) > 4 {
+		to = utf8Decoder(toInText[4:])
+	}
+
+	var contentTransferEncodingRegexp = regexp.MustCompile(`Content-Transfer-Encoding: [\w!&=/, "<>(\-)(\|)(\.)(\?)(\+):#@]*`)
+	encodingInText := contentTransferEncodingRegexp.FindString(strLetter)
+	encoding := ""
+	if len(encodingInText) > 27 {
+		encoding = utf8Decoder(encodingInText[27:])
+	}
+
+	fmt.Println(Brown(strLetter))
+	fmt.Println(Brown("-----------------------------------------------------"))
+	fmt.Println(Brown(date))
+	fmt.Println(Brown(subject))
+	fmt.Println(Brown(from))
+	fmt.Println(Brown(to))
+	fmt.Println(Brown(encoding))
+
+	return
+}
+
+func parseLetter(letter []string) (date, subject, from, to string) {
+	var b strings.Builder
+	numOfStr := len(letter)
+	for i, line := range letter {
+		if i > 0 && i < numOfStr-2 {
+			b.WriteString(line)
+		}
+
+	}
+	strLetter := b.String()
+
+	msg, err := mail.ReadMessage(bytes.NewBuffer([]byte(strLetter)))
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(Brown(msg.Header.Get("To")))
+
+	// fmt.Println(Brown(strLetter))
 	return
 }
