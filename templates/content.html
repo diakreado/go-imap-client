@@ -1,16 +1,23 @@
 {{ define "content" }}
 
     <div class="content">
-        <div class="control-buttons">
-            <input type="button" class="blue-button" value="One" />
-            <input type="button" class="blue-button" value="One more" />
-            <input type="button" class="blue-button" value="More than" />
+        {{ $selected := .Boxes.SelectedBox }}
+        {{ $arrayOfBoxes := .Boxes.BoxesNames }}
+        
+        <div class="left-block">
+            <div class="box-list">
+                {{ range $key, $value := $arrayOfBoxes }}
+                    <a href="/?box={{ $value }}" class="box-item {{ if eq $key $selected }}selected{{ end }}">
+                        {{ $value }}
+                    </a>
+                {{ end }}
+            </div>
         </div>
-
+        
         <div class="message-block">
             {{ range $key, $value := .Envelope }}
                 {{ if not (eq $key 0) }} <hr noshade> {{ end }}
-                <a href="/letter?uid={{ $value.UID }}" class="message {{ if not .Seen }}unseen{{ end }}">
+                <a href="/letter?box={{ index $arrayOfBoxes $selected }}&uid={{ $value.UID }}" class="message {{ if not .Seen }}unseen{{ end }}">
                     <div class="contact" title="{{ .Sender }} {{.Email }}">
                         <span>{{ trunc 20 $value.Sender }}</span> <span class="funny-ball">&#9679;</span>
                     </div>

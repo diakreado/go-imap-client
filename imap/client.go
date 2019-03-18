@@ -23,8 +23,19 @@ type Envelope struct {
 	UID     int
 }
 
+// Letter - struct which discribe content of email
 type Letter struct {
-	Text string
+	Date,
+	Subject,
+	From,
+	To,
+	Body string
+}
+
+// Boxes - name of boxes and one selected
+type Boxes struct {
+	BoxesNames  []string
+	SelectedBox int
 }
 
 // TryToLogin - return result of login
@@ -49,7 +60,7 @@ func TryToLogin() (successful bool) {
 }
 
 // GetListOfMails - return array of string
-func GetListOfMails() (envelopes []Envelope) {
+func GetListOfMails(selectedBox string) (envelopes []Envelope, listOfBoxes Boxes) {
 	authData := db.GetAuthData()
 	conn := createConn(authData.Server)
 	defer func() {
@@ -59,7 +70,7 @@ func GetListOfMails() (envelopes []Envelope) {
 	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 
 	login(conn, authData.Login, authData.Password)
-	examineInbox(conn)
+	examineBox(conn, selectedBox)
 	responseFetch := fetchHeader(conn)
 	responseSearch := searchUnseen(conn)
 	if len(responseFetch) > 0 && len(responseSearch) > 0 {
@@ -69,12 +80,19 @@ func GetListOfMails() (envelopes []Envelope) {
 	} else {
 		fmt.Println("Error->", Red("NO completed"))
 	}
+	listOfBoxes.BoxesNames = parseBoxList(getListOfBoxes(conn))
+	for i, name := range listOfBoxes.BoxesNames {
+		if name == selectedBox {
+			listOfBoxes.SelectedBox = i
+		}
+	}
+
 	logout(conn)
 	return
 }
 
 // GetLetter - find by UID letter and return it
-func GetLetter(uid string) (letter Letter) {
+func GetLetter(uid string, selectedBox string) (letter Letter) {
 	authData := db.GetAuthData()
 	conn := createConn(authData.Server)
 	defer func() {
@@ -84,12 +102,12 @@ func GetLetter(uid string) (letter Letter) {
 	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 
 	login(conn, authData.Login, authData.Password)
-	selectInbox(conn)
+	selectInbox(conn, selectedBox)
 
 	letterNum := parseSearch(findLetter(conn, uid))[0]
 	letterText := fetchLetter(conn, letterNum)
 
-	parseLetter(letterText)
+	letter.Date, letter.Subject, letter.From, letter.To, letter.Body = parseLetter(letterText)
 
 	logout(conn)
 	return

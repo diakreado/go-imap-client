@@ -16,18 +16,18 @@ func login(conn *tls.Conn, login string, pass string) []string {
 	return readBeforPrefixLine(conn, prefix)
 }
 
-func examineInbox(conn *tls.Conn) []string {
+func examineBox(conn *tls.Conn, selectedBox string) []string {
 	prefix := "a0002"
-	fmt.Println("Client->", Green(prefix+" examine inbox"))
-	fmt.Fprintf(conn, prefix+" examine inbox\n")
+	fmt.Println("Client->", Green(prefix+" examine "+selectedBox))
+	fmt.Fprintf(conn, "%s examine %s\n", prefix, selectedBox)
 
 	return readBeforPrefixLine(conn, prefix)
 }
 
-func selectInbox(conn *tls.Conn) []string {
+func selectInbox(conn *tls.Conn, selectedBox string) []string {
 	prefix := "a0003"
-	fmt.Println("Client->", Green(prefix+" select inbox"))
-	fmt.Fprintf(conn, prefix+" select inbox\n")
+	fmt.Println("Client->", Green(prefix+" select "+selectedBox))
+	fmt.Fprintf(conn, "%s select %s\n", prefix, selectedBox)
 
 	return readBeforPrefixLine(conn, prefix)
 }
@@ -64,13 +64,13 @@ func fetchLetter(conn *tls.Conn, num int) []string {
 	return readBeforPrefixLine(conn, prefix)
 }
 
-// func setFlagSeen(conn *tls.Conn, num int) []string {
-// 	prefix := "a0008"
-// 	fmt.Println("Client->", Green(prefix+" store "+strconv.Itoa(num)+" +FLAGS \\Seen"))
-// 	fmt.Fprintf(conn, "%s store %d +FLAGS \\Seen\n", prefix, num)
+func getListOfBoxes(conn *tls.Conn) []string {
+	prefix := "a0008"
+	fmt.Println("Client->", Green(prefix+` LIST "" "%" `))
+	fmt.Fprintf(conn, "%s LIST \"\" \"%%\" \n", prefix)
 
-// 	return readBeforPrefixLine(conn, prefix)
-// }
+	return readBeforPrefixLine(conn, prefix)
+}
 
 func logout(conn *tls.Conn) []string {
 	prefix := "a00010"

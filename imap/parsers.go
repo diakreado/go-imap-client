@@ -2,8 +2,11 @@ package imap
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"mime"
+	"mime/quotedprintable"
 	"net/mail"
 	"regexp"
 	"strconv"
@@ -138,77 +141,64 @@ func parseSearch(response []string) (result []int) {
 	return
 }
 
-func parseLetter1(letter []string) (date, subject, from, to string) {
-	var b strings.Builder
-	for _, line := range letter {
-		if !strings.HasSuffix(line, "\n") {
-			fmt.Println("lol")
-		}
-
-		b.WriteString(line)
-	}
-	strLetter := b.String()
-
-	var dateRegexp = regexp.MustCompile(`Date: [\w!&=/, (\-)(\|)(\.)(\?)(\+):#@]*`)
-	var usefulDate = regexp.MustCompile(`[a-zA-Z]{3},  ?(\d+) [a-zA-Z]{3} \d{4} \d+:\d+`)
-	dateInText := dateRegexp.FindString(strLetter)
-	date = usefulDate.FindString(dateInText)
-
-	var subjectRegexp = regexp.MustCompile(`Subject: [\w!&=/, "<>(\-)(\|)(\.)(\?)(\+):#@]*`)
-	subjectInText := subjectRegexp.FindString(strLetter)
-	if len(subjectInText) > 9 {
-		subject = utf8Decoder(subjectInText[9:])
-	}
-
-	var fromRegexp = regexp.MustCompile(`From: [\w!&=/, "<>(\-)(\|)(\.)(\?)(\+):#@]*`)
-	fromInText := fromRegexp.FindString(strLetter)
-	if len(fromInText) > 6 {
-		from = utf8Decoder(fromInText[6:])
-	}
-
-	var toRegexp = regexp.MustCompile(`To: [\w!&=/, "<>(\-)(\|)(\.)(\?)(\+):#@]*`)
-	toInText := toRegexp.FindString(strLetter)
-	if len(toInText) > 4 {
-		to = utf8Decoder(toInText[4:])
-	}
-
-	var contentTransferEncodingRegexp = regexp.MustCompile(`Content-Transfer-Encoding: [\w!&=/, "<>(\-)(\|)(\.)(\?)(\+):#@]*`)
-	encodingInText := contentTransferEncodingRegexp.FindString(strLetter)
-	encoding := ""
-	if len(encodingInText) > 27 {
-		encoding = utf8Decoder(encodingInText[27:])
-	}
-
-	fmt.Println(Brown(strLetter))
-	fmt.Println(Brown("-----------------------------------------------------"))
-	fmt.Println(Brown(date))
-	fmt.Println(Brown(subject))
-	fmt.Println(Brown(from))
-	fmt.Println(Brown(to))
-	fmt.Println(Brown(encoding))
-
-	return
-}
-
-func parseLetter(letter []string) (date, subject, from, to string) {
+func parseLetter(letter []string) (date, subject, from, to, body string) {
 	var b strings.Builder
 	numOfStr := len(letter)
 	for i, line := range letter {
 		if i > 0 && i < numOfStr-2 {
 			b.WriteString(line)
 		}
-
 	}
 	strLetter := b.String()
 
 	msg, err := mail.ReadMessage(bytes.NewBuffer([]byte(strLetter)))
-
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(Brown(msg.Header.Get("To")))
+	date = msg.Header.Get("Date")
+	subject = utf8Decoder(msg.Header.Get("Subject"))
+	from = utf8Decoder(msg.Header.Get("From"))
+	to = utf8Decoder(msg.Header.Get("To"))
 
-	// fmt.Println(Brown(strLetter))
+	encoding := msg.Header.Get("Content-Transfer-Encoding")
+
+	if encoding == "base64" {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(msg.Body)
+		s := buf.String()
+		decodedB64, err := base64.StdEncoding.DecodeString(s)
+		if err != nil {
+			fmt.Println("decodeB64 error:", err)
+			return
+		}
+		body = string(decodedB64)
+	} else {
+		r := quotedprintable.NewReader(msg.Body)
+		decodedQI, err := ioutil.ReadAll(r)
+		if err != nil {
+			fmt.Println("decodeQI error:", err)
+			return
+		}
+		body = string(decodedQI)
+	}
+
+	return
+}
+
+func parseBoxList(response []string) (nameOfBoxes []string) {
+	var b strings.Builder
+	for _, line := range response {
+		b.WriteString(line)
+	}
+	strResponse := b.String()
+
+	var boxNameRegexp = regexp.MustCompile(`"/" [\w]+`)
+	boxNames := boxNameRegexp.FindAllString(strResponse, -1)
+
+	for _, nameInText := range boxNames {
+		nameOfBoxes = append(nameOfBoxes, nameInText[4:])
+	}
+
 	return
 }

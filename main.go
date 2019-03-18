@@ -18,6 +18,7 @@ const (
 type Data struct {
 	Auth     db.AuthData
 	Envelope []imap.Envelope
+	Boxes    imap.Boxes
 }
 
 var funcMap = template.FuncMap{
@@ -44,7 +45,7 @@ func isLocalhost(remoteAddr string) bool {
 // also view result of requset to imap server
 func indexHandler(res http.ResponseWriter, req *http.Request) {
 	if !isLocalhost(req.RemoteAddr) {
-		http.Redirect(res, req, "https://http://hyperborea-theatre.ru/", http.StatusSeeOther)
+		http.Redirect(res, req, "https://hyperborea-theatre.ru/", http.StatusSeeOther)
 		return
 	}
 	fmt.Println(req.Method, req.URL)
@@ -53,28 +54,30 @@ func indexHandler(res http.ResponseWriter, req *http.Request) {
 
 	authData := db.GetAuthData()
 
+	box := req.FormValue("box")
 	var data Data
 	if authData.Login != "" && authData.Password != "" && authData.Server != "" {
-		envelopeData := imap.GetListOfMails()
+		envelopeData, listOfBoxes := imap.GetListOfMails(box)
 
 		data.Auth = authData
 		data.Envelope = envelopeData
+		data.Boxes = listOfBoxes
 	}
-
 	templates.ExecuteTemplate(res, "index", data)
 }
 
 func letterHandler(res http.ResponseWriter, req *http.Request) {
 	if !isLocalhost(req.RemoteAddr) {
-		http.Redirect(res, req, "https://http://hyperborea-theatre.ru/", http.StatusSeeOther)
+		http.Redirect(res, req, "https://hyperborea-theatre.ru/", http.StatusSeeOther)
 		return
 	}
 	uid := req.FormValue("uid")
+	box := req.FormValue("box")
 	fmt.Println(req.Method, req.URL)
 
 	templates := template.Must(template.New("main").Funcs(funcMap).ParseGlob("./templates/*"))
 
-	letter := imap.GetLetter(uid)
+	letter := imap.GetLetter(uid, box)
 
 	templates.ExecuteTemplate(res, "letter", letter)
 }
@@ -84,7 +87,7 @@ func letterHandler(res http.ResponseWriter, req *http.Request) {
 // and send redirect to index(root)
 func authHandler(res http.ResponseWriter, req *http.Request) {
 	if !isLocalhost(req.RemoteAddr) {
-		http.Redirect(res, req, "https://http://hyperborea-theatre.ru/", http.StatusSeeOther)
+		http.Redirect(res, req, "https://hyperborea-theatre.ru/", http.StatusSeeOther)
 		return
 	}
 	fmt.Println(req.Method, req.URL)

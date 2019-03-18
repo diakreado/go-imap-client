@@ -1,7 +1,23 @@
 {{ define "letter" }}
 {{ template "header" }}
 
-    {{.}}
+    <div class="letter">
+        <div class="date">
+            Date: {{ .Date }}
+        </div>
+        <div class="subject">
+            Subject: {{ .Subject }}
+        </div>
+        <div class="from">
+            From: {{ .From }}
+        </div>
+        <div class="to">
+            To: {{ .To }}
+        </div>
+        <div class="body-text">
+            Text: {{ .Body }}
+        </div>
+    </div>
 
 {{ template "footer" }}
 {{ end }}
