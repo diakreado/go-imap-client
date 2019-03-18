@@ -1,1 +1,6 @@
 auth.json
+*.aux
+*.fdb*
+*.fls
+*.log
+*.synctex.gz
